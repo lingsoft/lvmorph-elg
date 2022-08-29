@@ -20,7 +20,7 @@ This ELG API was developed in EU's CEF project
 
 ## Creating a JAR
 
-Install [Maven](https://maven.apache.org/download.cgi), clone the [Latvian morphology repository](https://github.com/lingsoft/Latvian_morphology) and run 
+Install [Maven](https://maven.apache.org/download.cgi), download the [Latvian morphology repository](https://github.com/lingsoft/Latvian_morphology) and run 
 
 ```
 mvn install

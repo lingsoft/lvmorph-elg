@@ -52,7 +52,7 @@ Or pull directly ready-made image `docker pull lingsoft/lv-morph:2.2.5-elg`.
 ## Deploying the service
 
 ```
-docker run -d -p <port>:8000 --init lvtagger-analysis
+docker run -d -p <port>:8000 --init lv-morph
 ```
 
 ## Example calls

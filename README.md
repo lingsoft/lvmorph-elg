@@ -1,19 +1,38 @@
-# ELG API for LV Tagger – Latvian morphological tagger and named entity recognition module
+# ELG API for Morphological Analyzer for Latvian Language
 
-This git repository contains [ELG compatible](https://european-language-grid.readthedocs.io/en/stable/all/A3_API/LTInternalAPI.html) Flask based REST API for [LV Tagger](https://github.com/PeterisP/LVTagger) – morphological tagger and named entity recognition module for the Latvian language (v. 2.2.1). LV Tagger is licensed under the [full GPL](https://github.com/PeterisP/LVTagger/blob/master/LICENSE.txt). The software was developed by Pēteris Paikens from the University of Latvia, Institute of Mathematics and Computer science.
+This git repository contains
+[ELG compatible](https://european-language-grid.readthedocs.io/en/stable/all/A3_API/LTInternalAPI.html)
+Flask based REST API for [Morphological Analyzer for Latvian Language](https://github.com/PeterisP/morphology) – a Java library for analyzing morphology and part of speech information for Latvian words (v. 2.2.5). 
+The analyzer is licensed under the
+[GNU General Public Licence](https://github.com/PeterisP/morphology/blob/master/LICENSE.txt).
+The software was developed by Pēteris Paikens from the University of Latvia,
+Institute of Mathematics and Computer science.
 
-You can call two endpoints: `tagger` and `ner`. `tagger` groups tokens by their part of speech, which is the first letter of the morphological tag, shows their starting and ending indexes, lemma ('Pamatforma') and other morphological information depending on the part of speech (e.g. 'Skaitlis' (number), 'Locījums' (case), 'Dzimte' (gender), etc). `ner` groups tokens by their named entity label (person, organization, location, event, product, profession) and shows their starting and ending indexes.
+You can call two endpoints: `word_analysis` and `wordforms`.
+`word_analysis` takes a single word as an input and outputs all possible morphological readings of this word. Each reading is given: 
+1) a morphological tag (e.g. 'ncmsa1'), whose first letter denotes the part of speech (e.g. 'n' – noun),
+2) a set of features, partly depending on the part of speech: 'Pamatforma' (lemma), 'Skaitlis' (number), 'Locījums' (case), 'Dzimte' (gender), etc.
 
-This ELG API was developed in EU's CEF project [Microservices at your service](https://www.lingsoft.fi/en/microservices-at-your-service-bridging-gap-between-nlp-research-and-industry).
+`wordforms` takes a single word as an input and outputs all inflections of this word, their morphological tags and features.
+
+This ELG API was developed in EU's CEF project
+[Microservices at your service](https://www.lingsoft.fi/en/microservices-at-your-service-bridging-gap-between-nlp-research-and-industry).
+
+## Creating a JAR
+
+Install [Maven](https://maven.apache.org/download.cgi), clone the [Latvian morphology repository](https://github.com/lingsoft/Latvian_morphology) and run 
+
+```
+mvn install
+```
+Copy the `morphology-2.2.5-SNAPSHOT.jar` file from the `target` folder to the current project folder.
 
 ## Local development
 
-Download [tagger-2.2.1-jar-with-dependencies.jar](https://search.maven.org/remotecontent?filepath=lv/ailab/morphology/tagger/2.2.1/tagger-2.2.1-jar-with-dependencies.jar) or build using Maven from the [source](https://github.com/PeterisP/LVTagger) and copy the jar to the project directory.
-
 Setup virtualenv, dependencies
 ```
-python -m venv spacy-lt-elg-venv
-source spacy-lt-elg-venv/bin/activate
+python -m venv lvtagger-analysis-venv
+source lvtagger-analysis -venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
@@ -25,72 +44,111 @@ FLASK_ENV=development flask run --host 0.0.0.0 --port 8000
 ## Building the docker image
 
 ```
-docker build -t lvtagger .
+docker build -t lv-morph .
 ```
 
-Or pull directly ready-made image `docker pull lingsoft/lvtagger:2.2.1-elg`.
+Or pull directly ready-made image `docker pull lingsoft/lv-morph:2.2.5-elg`.
 
 ## Deploying the service
 
 ```
-docker run -d -p <port>:8000 --init --memory="2g" --restart always lvtagger
+docker run -d -p <port>:8000 --init lvtagger-analysis
 ```
 
-## Example call
+## Example calls
 
 ```
-curl -H "Content-Type: application/json" -d @text-request.json -X POST http://localhost:<port>/process/<endpoint_name>
+curl -H 'Content-Type: application/json' -d '{"type": "text", "content": "roku"}' http://localhost:8000/process/word_analysis
 ```
-`endpoint_name` can be `tagger` or `ner`. 
-
-
-### Text request
 
 ```
-{
-    "type": "text",
-    "content": text to be analyzed
-}
+curl -H 'Content-Type: application/json' -d '{"type": "text", "content": "rakt"}' http://localhost:8000/process/wordforms
 ```
+
 
 ### Response
 
-Tagger
+#### `word_analysis`
 
-```
+```json
 {
   "response": {
-    "type": "annotations",
-    "annotations": {
-      "<POS tag>": [ // list of tokens that were recognized
-        {
-          "start":number,
-          "end":number,
-          "features": {"Pamatforma": str, …}
-        },
-      ],
-    }
+    "type": "texts",
+    "texts": [
+      {"role": "alternative",
+       "content": "ncmsa1",
+       "features": {
+         "Šķirkļa_ID": "275453", 
+         "Vārds": "roku", 
+         "Šķirkļa_cilvēklasāmais_ID": "roks:1", 
+         "Leksēmas_nr": "286145", 
+         "Pamatforma": "roks", 
+         "FreeText": "-a, v.; mūz.", 
+         "Galotnes_nr": "4", 
+         "Vārdšķira": "Lietvārds", 
+         "Mija": "0", 
+         "Minēšana": "Nav", 
+         "Locījums": "Akuzatīvs", 
+         "Dzimte": "Vīriešu", 
+         "Vārdgrupas_nr": "1", 
+         "Joma": "Mūzika", 
+         "Deklinācija": "1"
+         }
+       },
+      {"role": "alternative",
+       "content": "ncmpg1",
+       ...
+       }
+      ...
+    ]
   }
 }
 ```
 
-NER
+#### `wordforms`
 
-```
+```json
 {
   "response": {
-    "type": "annotations",
-    "annotations": {
-      "<NER label>": [ // list of tokens that were recognized
-        {
-          "start":number,
-          "end":number
-        },
-      ],
-    }
+    "type": "texts",
+    "texts": [
+      {"role": "alternative",
+       "content": "vmnn0_1000n",
+       "features": {
+         "Laiks": "Nepiemīt", 
+         "Konjugācija": "1", 
+         "Skaitlis": "Nepiemīt", 
+         "Šķirkļa_ID": "268218", 
+         "Vārds": "rakt", 
+         "Persona": "Nepiemīt", 
+         "Darbības_vārda_tips": "Patstāvīgs darbības vārds", 
+         "Šķirkļa_cilvēklasāmais_ID": "rakt:1", 
+         "Atgriezeniskums": "Nē", 
+         "Locīt_kā": "rakt", 
+         "Leksēmas_nr": "278520", 
+         "Pamatforma": "rakt", 
+         "FreeText": "roku, roc, rok, pag. raku.", 
+         "Galotnes_nr": "711", 
+         "Noliegums": "Nē", 
+         "Vārdšķira": "Darbības vārds", 
+         "Mija": "0", 
+         "Vārdgrupas_nr": "15", 
+         "Izteiksme": "Nenoteiksme", 
+         "Kārta": "Nepiemīt"
+         }
+       },
+      {"role": "alternative",
+       "content": "vmnif_11san",
+       ...
+       }
+      ...
+    ]
   }
 }
 ```
+
+More information about
+[Latvian part-of-speech tagging](https://peteris.rocks/blog/latvian-part-of-speech-tagging/)
 
 ## Warning
 

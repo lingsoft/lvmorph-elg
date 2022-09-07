@@ -13,7 +13,7 @@ You can call two endpoints: `word_analysis` and `wordforms`.
 1) a morphological tag (e.g. 'ncmsa1'), whose first letter denotes the part of speech (e.g. 'n' – noun),
 2) a set of features, partly depending on the part of speech: 'Pamatforma' (lemma), 'Skaitlis' (number), 'Locījums' (case), 'Dzimte' (gender), etc.
 
-`wordforms` takes a single word as an input and outputs all inflections of this word, their morphological tags and features.
+`wordforms` takes a single word as an input and outputs all morphological forms of this word, their morphological tags and features.
 
 This ELG API was developed in EU's CEF project
 [Microservices at your service](https://www.lingsoft.fi/en/microservices-at-your-service-bridging-gap-between-nlp-research-and-industry).

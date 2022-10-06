@@ -49,7 +49,12 @@ class LVTagger(FlaskService):
     def process_text(self, request: TextRequest):
         content = request.content + "\n"
         if content == "\n":
-            return TextsResponse(texts = [])
+            emptyInput_warning_msg = StatusMessage(
+                code='lingsoft.input.empty',
+                params=[],
+                text='Input text is empty'
+            )
+            return TextsResponse(texts = [], warnings=[emptyInput_warning_msg])
         endpoint = self.url_param('endpoint')
         if endpoint == "word_analysis":
             content = "analysis " + content

@@ -48,7 +48,6 @@ class LVTagger(FlaskService):
         else:
             return TextsResponse(texts = texts, warnings = warnings_msg_lst)
 
-
     def process_text(self, request: TextRequest):
         warnings_msg_lst = []
         content = request.content + "\n"
@@ -130,7 +129,6 @@ class LVTagger(FlaskService):
 flask_service = LVTagger(name="LVTagger", path="/process/<endpoint>")
 app = flask_service.app
 process = None
-
 
 @app.before_first_request
 def setup():

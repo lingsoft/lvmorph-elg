@@ -47,7 +47,7 @@ FLASK_ENV=development flask run --host 0.0.0.0 --port 8000
 docker build -t lv-morph .
 ```
 
-Or pull directly ready-made image `docker pull lingsoft/lv-morph:2.2.5-elg`.
+Or pull directly ready-made image `docker pull lingsoft/lv-morph:2.2.6-elg`.
 
 ## Deploying the service
 

@@ -19,7 +19,7 @@ MAX_TOKEN_LENGTH = 100
 
 class LVTagger(FlaskService):
 
-    def convert_outputs(self, outputs, content, endpoint):
+    def convert_outputs(self, outputs, content, endpoint, warnings_msg_lst):
         texts = []
         lines = [x for x in outputs.split("\n") if x != ""]
         groups = []
@@ -43,10 +43,14 @@ class LVTagger(FlaskService):
                     "content": group[0], # tag
                     "features": feature_dict}
             texts.append(text)
-        return TextsResponse(texts = texts)
+        if warnings_msg_lst == []:
+            return TextsResponse(texts = texts)
+        else:
+            return TextsResponse(texts = texts, warnings = warnings_msg_lst)
 
 
     def process_text(self, request: TextRequest):
+        warnings_msg_lst = []
         content = request.content + "\n"
         if content == "\n":
             emptyInput_warning_msg = StatusMessage(
@@ -55,6 +59,14 @@ class LVTagger(FlaskService):
                 text='Input text is empty'
             )
             return TextsResponse(texts = [], warnings=[emptyInput_warning_msg])
+        
+        elif len(content.split()) > 1:
+            multipleWordsInput_warning_msg = StatusMessage(
+                code='lingsoft.input.not.single',
+                params=[],
+                text='Input should be one word, rest are ignored'
+            )
+            warnings_msg_lst.append(multipleWordsInput_warning_msg)
         endpoint = self.url_param('endpoint')
         if endpoint == "word_analysis":
             content = "analysis " + content
@@ -100,11 +112,20 @@ class LVTagger(FlaskService):
                     lines.append(line)
             output = "\n".join(lines)
             app.logger.debug("Output: %s", output)
-            return self.convert_outputs(output, content, endpoint)
+            return self.convert_outputs(output, content, endpoint, warnings_msg_lst)
         except Exception as err:
-            error = StandardMessages.\
-                    generate_elg_service_internalerror(params=[str(err)])
-            return Failure(errors=[error])
+            if str(err) == "list index out of range":
+                notFound_warning_msg = StatusMessage(
+                    code='lingsoft.not.found.word',
+                    params=[request.content.split()[0]],
+                    text='Word not found'
+                )
+                warnings_msg_lst.append(notFound_warning_msg)
+                return TextsResponse(texts = [], warnings = warnings_msg_lst)
+            else:
+                error = StandardMessages.\
+                        generate_elg_service_internalerror(params=[str(err)])
+                return Failure(errors=[error])
 
 flask_service = LVTagger(name="LVTagger", path="/process/<endpoint>")
 app = flask_service.app

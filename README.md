@@ -51,7 +51,7 @@ python -m unittest tests/test_integration.py -v
 docker build -t lv-morph .
 ```
 
-Or pull directly ready-made image `docker pull lingsoft/lv-morph:2.2.6-elg`.
+Or pull directly ready-made image `docker pull lingsoft/lv-morph:2.2.5.1-elg`.
 
 ## Deploying the service
 
